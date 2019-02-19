@@ -1,0 +1,51 @@
+{
+  "name": "coreproc/api-builder",
+  "description": "API builder for Laravel",
+  "keywords": [
+    "coreproc",
+    "api-builder"
+  ],
+  "homepage": "https://github.com/coreproc/api-builder",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Chris Bautista",
+      "email": "chris.bautista@coreproc.ph",
+      "homepage": "https://coreproc.ph",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^7.1",
+    "ellipsesynergie/api-response": "^0.15.0"
+  },
+  "require-dev": {
+    "larapack/dd": "^1.0",
+    "phpunit/phpunit": "^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "CoreProc\\ApiBuilder\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CoreProc\\ApiBuilder\\Tests\\": "tests"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "CoreProc\\ApiBuilder\\ApiBuilderServiceProvider"
+      ]
+    }
+  }
+}
