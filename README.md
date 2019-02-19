@@ -1,20 +1,18 @@
-# Very short description of the package
+# API Builder for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/api-builder.svg?style=flat-square)](https://packagist.org/packages/spatie/api-builder)
 [![Build Status](https://img.shields.io/travis/spatie/api-builder/master.svg?style=flat-square)](https://travis-ci.org/spatie/api-builder)
 [![Quality Score](https://img.shields.io/scrutinizer/g/spatie/api-builder.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/api-builder)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/api-builder.svg?style=flat-square)](https://packagist.org/packages/spatie/api-builder)
 
-**Note:** Replace ```Chris Bautista``` ```chrisbjr``` ```chris.bautista@coreproc.ph``` ```api-builder``` ```API builder for Laravel``` with their correct values in [README.md](README.md), [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md), [LICENSE.md](LICENSE.md) and [composer.json](composer.json) files, then delete this line.
-
-This is where your description should go. Try and limit it to a paragraph or two.
+API builder for Laravel
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require spatie/api-builder
+composer require coreproc/api-builder
 ```
 
 ## Usage
