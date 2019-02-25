@@ -4,6 +4,7 @@ namespace CoreProc\ApiBuilder\Http\Controllers;
 
 use CoreProc\ApiBuilder\Builders\HttpQueryToSqlQueryBuilder;
 use CoreProc\ApiBuilder\Http\Responses\ApiResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use League\Fractal\Manager;
@@ -66,12 +67,12 @@ abstract class ApiBuilderController
         return new static::$transformer;
     }
 
-    protected static function indexQuery($request, $query)
+    protected static function indexQuery(Request $request, Builder $query)
     {
         return $query;
     }
 
-    protected static function creationQuery($request, $query)
+    protected static function creationQuery(Request $request, Builder $query)
     {
         return $query;
     }
@@ -103,6 +104,17 @@ abstract class ApiBuilderController
      * @return bool
      */
     public static function authorizedToViewAny(Request $request)
+    {
+        return true;
+    }
+
+    /**
+     * Determine if the resource should be available for the given request.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return bool
+     */
+    public static function authorizedToView(Request $request)
     {
         return true;
     }
@@ -160,6 +172,21 @@ abstract class ApiBuilderController
             static::newTransformer(), null, $this->addToMeta());
     }
 
+    public function show(Request $request, $id)
+    {
+        if (! static::authorizedToView($request)) {
+            return $this->response->errorUnauthorized();
+        }
+
+        try {
+            $model = static::newModel()->findOrFail($id);
+        } catch (\Exception $e) {
+            return $this->response->errorNotFound();
+        }
+
+        return $this->response->withItem($model, static::newTransformer());
+    }
+
     public function store(Request $request)
     {
         if (! static::authorizedToCreate($request)) {
@@ -187,10 +214,16 @@ abstract class ApiBuilderController
         return $this->response->setStatusCode(201)->withItem($newModel, static::newTransformer());
     }
 
-    public function update(Request $request, $model)
+    public function update(Request $request, $id)
     {
         if (! static::authorizedToUpdate($request)) {
             return $this->response->errorUnauthorized();
+        }
+
+        try {
+            $model = static::newModel()->findOrFail($id);
+        } catch (\Exception $e) {
+            return $this->response->errorNotFound();
         }
 
         $validator = Validator::make($request->all(), $this->updateRules());
@@ -212,13 +245,24 @@ abstract class ApiBuilderController
         return $this->response->withItem($model, static::newTransformer());
     }
 
-    public function delete(Request $request, $model)
+    public function delete(Request $request, $id)
     {
         if (! static::authorizedToDelete($request)) {
             return $this->response->errorUnauthorized();
         }
 
-        $model->delete();
+        try {
+            $model = static::newModel()->findOrFail($id);
+        } catch (\Exception $e) {
+            return $this->response->errorNotFound();
+        }
+
+
+        try {
+            $model->delete();
+        } catch (\Exception $e) {
+            return $this->response->withError($e->getMessage(), 500);
+        }
 
         return $this->response->withSuccess('Resource has been deleted.');
     }
