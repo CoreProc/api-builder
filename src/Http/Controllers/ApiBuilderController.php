@@ -149,10 +149,12 @@ abstract class ApiBuilderController
         // Build the query
         $query = static::indexQuery($request, app($this->model())->query());
 
-        $query = (new HttpQueryToSqlQueryBuilder($query,
+        $query = HttpQueryToSqlQueryBuilder::build(
+            $query,
             $request->all(),
             $this->getAllowedParams(),
-            $this->getDates()))->query;
+            $this->getDates()
+        );
 
         return $this->response->withPaginator($query->paginate($request->get('per_page', 15)),
             static::newTransformer(), null, $this->addToMeta());

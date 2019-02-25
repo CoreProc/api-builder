@@ -3,6 +3,7 @@
 namespace CoreProc\ApiBuilder\Builders;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class HttpQueryToSqlQueryBuilder
 {
@@ -22,10 +23,20 @@ class HttpQueryToSqlQueryBuilder
         'not_ends_with',
     ];
 
-    public $query;
-
-    public function __construct($query, $requestParameters, $allowedParams, $dates)
-    {
+    /**
+     * @param Builder $query
+     * @param array $requestParameters
+     * @param array $allowedParams
+     * @param array $dates
+     *
+     * @return Builder
+     */
+    public static function build(
+        Builder $query,
+        array $requestParameters = [],
+        array $allowedParams = [],
+        array $dates = []
+    ) {
         foreach ($requestParameters as $parameter => $value) {
             // Handle sorting first
             if ($parameter === 'sort') {
@@ -62,7 +73,7 @@ class HttpQueryToSqlQueryBuilder
             $parameter = implode('_', $parameterArray);
 
             // Convert operator to symbol
-            $operator = $this->operatorStringToSqlOperator($operatorString);
+            $operator = self::operatorStringToSqlOperator($operatorString);
 
             if (! in_array($parameter, $allowedParams)) {
                 continue;
@@ -74,7 +85,7 @@ class HttpQueryToSqlQueryBuilder
 
             if (! is_array($value)) {
                 // Append wildcards to value if ever
-                $value = $this->appendWildcardsToValue($value, $operatorString);
+                $value = self::appendWildcardsToValue($value, $operatorString);
 
                 if ($whereOperator === 'or') {
                     if ($value === 'null') {
@@ -102,10 +113,10 @@ class HttpQueryToSqlQueryBuilder
             }
         }
 
-        $this->query = $query;
+        return $query;
     }
 
-    private function operatorStringToSqlOperator($operator)
+    private static function operatorStringToSqlOperator($operator)
     {
         switch ($operator) {
             case 'not':
@@ -135,7 +146,7 @@ class HttpQueryToSqlQueryBuilder
         }
     }
 
-    private function appendWildcardsToValue($value, $operatorString)
+    private static function appendWildcardsToValue($value, $operatorString)
     {
         switch ($operatorString) {
             case 'contains':
