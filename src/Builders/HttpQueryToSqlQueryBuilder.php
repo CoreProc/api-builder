@@ -34,6 +34,12 @@ class HttpQueryToSqlQueryBuilder
                 continue;
             }
 
+            // Then handle the "limit" filter
+            if ($parameter === 'limit') {
+                $query->limit($value);
+                continue;
+            }
+
             // Get last of exploded parameter by _
             $parameterArray = explode('_', $parameter);
 
