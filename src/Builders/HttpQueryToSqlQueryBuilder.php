@@ -51,34 +51,37 @@ class HttpQueryToSqlQueryBuilder
                 continue;
             }
 
-            // Get last of exploded parameter by _
-            $parameterArray = explode('_', $parameter);
-
-            $operatorString = $parameterArray[count($parameterArray) - 1];
+            // Check what the operator string is
+            $operatorString = null;
+            foreach (static::$operators as $o) {
+                if (substr($parameter, -(strlen($o))) === $o) {
+                    $operatorString = $o;
+                    continue;
+                }
+            }
 
             // Get where operator. There is only one possible value: "or"
-            $whereOperator = $parameterArray[0] === 'or' ? 'or' : 'and';
+            $whereOperator = substr($parameter, 3) === 'or_' ? 'or' : 'and';
 
-            if (in_array($operatorString, self::$operators)) {
+            if (! is_null($operatorString)) {
                 // Remove the operator from the string
-                unset($parameterArray[count($parameterArray) - 1]);
+                $parameter = str_replace('_' . $operatorString, '', $parameter);
             }
 
-            if ($parameterArray[0] === 'or') {
+            if ($whereOperator === 'or') {
                 // Remove where operator from parameter
-                unset($parameterArray[0]);
+                $parameter = str_replace('or_', '', $parameter);
             }
-
-            // Build back the parameter
-            $parameter = implode('_', $parameterArray);
 
             // Convert operator to symbol
             $operator = self::operatorStringToSqlOperator($operatorString);
 
+            // Skip if not parameter is not allowed
             if (! in_array($parameter, $allowedParams)) {
                 continue;
             }
 
+            // Convert string to carbon date
             if (in_array($parameter, $dates)) {
                 $value = Carbon::parse($value);
             }
