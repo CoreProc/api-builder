@@ -66,7 +66,12 @@ abstract class ApiBuilderController
         return new static::$transformer;
     }
 
-    private static function indexQuery($request, $query)
+    protected static function indexQuery($request, $query)
+    {
+        return $query;
+    }
+
+    protected static function creationQuery($request, $query)
     {
         return $query;
     }
@@ -81,7 +86,12 @@ abstract class ApiBuilderController
         return $this->dates;
     }
 
-    protected function creationRulesFor()
+    protected function creationRules()
+    {
+        return [];
+    }
+
+    protected function updateRules()
     {
         return [];
     }
@@ -108,6 +118,28 @@ abstract class ApiBuilderController
         return true;
     }
 
+    /**
+     * Determine if the current user can update new resources.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return bool
+     */
+    public static function authorizedToUpdate(Request $request)
+    {
+        return true;
+    }
+
+    /**
+     * Determine if the current user can delete new resources.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return bool
+     */
+    public static function authorizedToDelete(Request $request)
+    {
+        return true;
+    }
+
     public function index(Request $request)
     {
         if (! static::authorizedToViewAny($request)) {
@@ -115,7 +147,7 @@ abstract class ApiBuilderController
         }
 
         // Build the query
-        $query = self::indexQuery($request, app($this->model())->query());
+        $query = static::indexQuery($request, app($this->model())->query());
 
         $query = (new HttpQueryToSqlQueryBuilder($query,
             $request->all(),
@@ -132,7 +164,7 @@ abstract class ApiBuilderController
             return $this->response->errorUnauthorized();
         }
 
-        $validator = Validator::make($request->all(), $this->creationRulesFor());
+        $validator = Validator::make($request->all(), $this->creationRules());
 
         if ($validator->fails()) {
             $errors = $validator->getMessageBag()->toArray();
@@ -146,9 +178,47 @@ abstract class ApiBuilderController
             return $this->response->errorValidation($errors, $message);
         }
 
-        $newModel = static::newModel()->create($request->all());
+        $creationQuery = static::creationQuery($request, static::newModel());
 
-        return $this->response->withItem($newModel, static::newTransformer());
+        $newModel = $creationQuery->create($request->all());
+
+        return $this->response->setStatusCode(201)->withItem($newModel, static::newTransformer());
+    }
+
+    public function update(Request $request, $model)
+    {
+        if (! static::authorizedToUpdate($request)) {
+            return $this->response->errorUnauthorized();
+        }
+
+        $validator = Validator::make($request->all(), $this->updateRules());
+
+        if ($validator->fails()) {
+            $errors = $validator->getMessageBag()->toArray();
+
+            // Try to get the first error message
+            $message = 'The given data was invalid';
+            if (! empty(reset($errors)[0])) {
+                $message = reset($errors)[0];
+            }
+
+            return $this->response->errorValidation($errors, $message);
+        }
+
+        $model->update($request->all());
+
+        return $this->response->withItem($model, static::newTransformer());
+    }
+
+    public function delete(Request $request, $model)
+    {
+        if (! static::authorizedToDelete($request)) {
+            return $this->response->errorUnauthorized();
+        }
+
+        $model->delete();
+
+        return $this->response->withSuccess('Resource has been deleted.');
     }
 
     /**
