@@ -53,7 +53,7 @@ transformers, you can find more information [here](https://fractal.thephpleague.
 Now, to make the above controller accessible, all we need to do is define the route in `routes/api.php`.
 
 ```php
-Route::resource('posts', 'Api\PostsController');
+Route::apiResource('posts', 'Api\PostsController');
 ```
 
 Once defined in your routes, you will now get the following endpoints:
