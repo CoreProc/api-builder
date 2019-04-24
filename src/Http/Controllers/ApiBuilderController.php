@@ -24,6 +24,8 @@ abstract class ApiBuilderController
 
     protected $allowedParams = [];
 
+    protected $allowedAttributes = [];
+
     protected $dates = [];
 
     public function __construct()
@@ -72,7 +74,7 @@ abstract class ApiBuilderController
         return $query;
     }
 
-    protected static function creationQuery(Request $request, Builder $query)
+    protected static function creationQuery(Request $request, $query)
     {
         return $query;
     }
@@ -100,7 +102,7 @@ abstract class ApiBuilderController
     /**
      * Determine if the resource should be available for the given request.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public static function authorizedToViewAny(Request $request)
@@ -111,7 +113,7 @@ abstract class ApiBuilderController
     /**
      * Determine if the resource should be available for the given request.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public static function authorizedToView(Request $request)
@@ -122,7 +124,7 @@ abstract class ApiBuilderController
     /**
      * Determine if the current user can create new resources.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public static function authorizedToCreate(Request $request)
@@ -133,7 +135,7 @@ abstract class ApiBuilderController
     /**
      * Determine if the current user can update new resources.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public static function authorizedToUpdate(Request $request)
@@ -144,7 +146,7 @@ abstract class ApiBuilderController
     /**
      * Determine if the current user can delete new resources.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public static function authorizedToDelete(Request $request)
@@ -207,9 +209,17 @@ abstract class ApiBuilderController
             return $this->response->errorValidation($errors, $message);
         }
 
-        $creationQuery = static::creationQuery($request, static::newModel());
+        $data = $request->all();
 
-        $newModel = $creationQuery->create($request->all());
+        if (! empty($this->allowedAttributes)) {
+            $data = $request->only($this->allowedAttributes);
+        }
+
+        $newModel = (static::newModel())->fill($data);
+
+        $newModel = static::creationQuery($request, $newModel);
+
+        $newModel->save();
 
         return $this->response->setStatusCode(201)->withItem($newModel, static::newTransformer());
     }
