@@ -255,7 +255,7 @@ abstract class ApiBuilderController
         return $this->response->withItem($model, static::newTransformer());
     }
 
-    public function delete(Request $request, $id)
+    public function destroy(Request $request, $id)
     {
         if (! static::authorizedToDelete($request)) {
             return $this->response->errorUnauthorized();
