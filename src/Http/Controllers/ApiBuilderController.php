@@ -22,6 +22,8 @@ abstract class ApiBuilderController
 
     public static $transformer;
 
+    protected $paginateIndex = true;
+
     protected $allowedParams = [];
 
     protected $allowedAttributes = [];
@@ -170,8 +172,12 @@ abstract class ApiBuilderController
             $this->getDates()
         );
 
-        return $this->response->withPaginator($query->paginate($request->get('per_page', 15)),
-            static::newTransformer(), null, $this->addToMeta());
+        if ($this->paginateIndex) {
+            return $this->response->withPaginator($query->paginate($request->get('per_page', 15)),
+                static::newTransformer(), null, $this->addToMeta());
+        }
+
+        return $this->response->withCollection($query->get(), static::newTransformer(), null, null, $this->addToMeta());
     }
 
     public function show(Request $request, $id)
