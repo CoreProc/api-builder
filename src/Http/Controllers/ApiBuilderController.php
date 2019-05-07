@@ -116,7 +116,7 @@ abstract class ApiBuilderController
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public static function authorizedToView(Request $request)
+    public static function authorizedToView(Request $request, $model)
     {
         return true;
     }
@@ -138,7 +138,7 @@ abstract class ApiBuilderController
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public static function authorizedToUpdate(Request $request)
+    public static function authorizedToUpdate(Request $request, $model)
     {
         return true;
     }
@@ -149,7 +149,7 @@ abstract class ApiBuilderController
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public static function authorizedToDelete(Request $request)
+    public static function authorizedToDelete(Request $request, $model)
     {
         return true;
     }
@@ -176,14 +176,14 @@ abstract class ApiBuilderController
 
     public function show(Request $request, $id)
     {
-        if (! static::authorizedToView($request)) {
-            return $this->response->errorUnauthorized();
-        }
-
         try {
             $model = static::newModel()->findOrFail($id);
         } catch (\Exception $e) {
             return $this->response->errorNotFound();
+        }
+
+        if (! static::authorizedToView($request, $model)) {
+            return $this->response->errorUnauthorized();
         }
 
         return $this->response->withItem($model, static::newTransformer());
@@ -226,14 +226,14 @@ abstract class ApiBuilderController
 
     public function update(Request $request, $id)
     {
-        if (! static::authorizedToUpdate($request)) {
-            return $this->response->errorUnauthorized();
-        }
-
         try {
             $model = static::newModel()->findOrFail($id);
         } catch (\Exception $e) {
             return $this->response->errorNotFound();
+        }
+
+        if (! static::authorizedToUpdate($request, $model)) {
+            return $this->response->errorUnauthorized();
         }
 
         $validator = Validator::make($request->all(), $this->updateRules());
@@ -257,16 +257,15 @@ abstract class ApiBuilderController
 
     public function destroy(Request $request, $id)
     {
-        if (! static::authorizedToDelete($request)) {
-            return $this->response->errorUnauthorized();
-        }
-
         try {
             $model = static::newModel()->findOrFail($id);
         } catch (\Exception $e) {
             return $this->response->errorNotFound();
         }
 
+        if (! static::authorizedToDelete($request, $model)) {
+            return $this->response->errorUnauthorized();
+        }
 
         try {
             $model->delete();
